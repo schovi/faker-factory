@@ -1,6 +1,6 @@
 require 'test_helper'
 
-describe FakeData do
+describe FakerFactory do
   before do
     # Faker::Name.stub :name do
     #   "John Doe"
@@ -24,19 +24,19 @@ describe FakeData do
   end
 
   it "test_static_value" do
-    FakeData.once("static")
+    FakerFactory.once("static")
   end
 
   it "test_faker_name" do
-    FakeData.once("aaa %{name.name}")
+    FakerFactory.once("aaa %{name.name}")
   end
 
   it "test_concatenate_faker_with_text" do
-    FakeData.once("name: %{name.name}")
+    FakerFactory.once("name: %{name.name}")
   end
 
   it "test_generator" do
-    generator = FakeData.generator("%{name.name}")
+    generator = FakerFactory.generator("%{name.name}")
 
     10.times do
       generator.call
@@ -44,15 +44,15 @@ describe FakeData do
   end
 
   it "test_debug" do
-    FakeData.debug("%{name.name}")
+    FakerFactory.debug("%{name.name}")
   end
 
   it "test_array" do
-    FakeData.once(["%{name.name}", "%{number.number(4)}"])
+    FakerFactory.once(["%{name.name}", "%{number.number(4)}"])
   end
 
   it "test_hash" do
-    FakeData.once({
+    FakerFactory.once({
       string: "%{name.name}",
       number: "%{number.number(4)}",
       another_hash: {
@@ -70,23 +70,23 @@ describe FakeData do
   end
 
   it "test_maybe" do
-    FakeData.once({"%{maybe}": "%{name.name}"})
+    FakerFactory.once({"%{maybe}": "%{name.name}"})
   end
 
   it "test_maybe_with_probability" do
-    FakeData.once({"%{maybe(10)}": "%{name.name}"})
+    FakerFactory.once({"%{maybe(10)}": "%{name.name}"})
   end
 
   it "test_repeat" do
-    FakeData.once({"%{repeat(2)}": "%{name.name}"})
+    FakerFactory.once({"%{repeat(2)}": "%{name.name}"})
   end
 
   it "test_repeat_with_random_count" do
-    FakeData.once({"%{repeat(1..10)}": "%{name.name}"})
+    FakerFactory.once({"%{repeat(1..10)}": "%{name.name}"})
   end
 
   it "test_maybe_with_repeat" do
-    FakeData.once({
+    FakerFactory.once({
       "%{maybe}": {
         "%{repeat(2)}": "%{name.name}"
       }
@@ -95,6 +95,6 @@ describe FakeData do
 
   # TODO
   # it "test_native_method" do
-  #   FakeData.once("%{rand}")
+  #   FakerFactory.once("%{rand}")
   # end
 end

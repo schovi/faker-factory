@@ -18,7 +18,7 @@
 guard :minitest do
   # watch /lib/ files
   watch(%r{^lib/(.+)\.rb$}) { |m|
-    "test/fake_data_test.rb"
+    "test/faker_factory_test.rb"
   }
 
 

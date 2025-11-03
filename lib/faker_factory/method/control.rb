@@ -1,6 +1,6 @@
-module FakeData
+module FakerFactory
   class Method
-    class Control < FakeData::Method
+    class Control < FakerFactory::Method
       attr_reader :call_block
 
       class << self
@@ -48,12 +48,12 @@ module FakeData
       private
 
       def raise_custom error, reason
-        raise error, "FakeData: can't parse '#{raw}'. Reason: #{reason}. For usage see: https://github.com/stympy/faker"
+        raise error, "FakerFactory: can't parse '#{raw}'. Reason: #{reason}. For usage see: https://github.com/stympy/faker"
       end
 
       def parse_klass klass_string
         raise_custom NameError, "'#{klass_string}' can't be presented" if klass_string
-        "::FakeData::Method::Control"
+        "::FakerFactory::Method::Control"
       end
     end
   end

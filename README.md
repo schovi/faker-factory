@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/schovi/FakeData.png?branch=master)](https://travis-ci.org/schovi/FakeData)
-[![Gem Version](https://badge.fury.io/rb/fake_data.png)](http://badge.fury.io/rb/fake_data)
-[![Coverage Status](https://coveralls.io/repos/schovi/FakeData/badge.png)](https://coveralls.io/r/schovi/FakeData)
+[![Build Status](https://travis-ci.org/schovi/FakerFactory.png?branch=master)](https://travis-ci.org/schovi/FakerFactory)
+[![Gem Version](https://badge.fury.io/rb/faker-factory.png)](http://badge.fury.io/rb/faker-factory)
+[![Coverage Status](https://coveralls.io/repos/schovi/FakerFactory/badge.png)](https://coveralls.io/r/schovi/FakerFactory)
 
-# FakeData
+# FakerFactory
 
 Fake data generator for simple and complex structures or objects. For data generation it uses [Faker gem](https://github.com/stympy/faker)
 
@@ -11,7 +11,7 @@ Fake data generator for simple and complex structures or objects. For data gener
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'fake_data'
+gem 'faker-factory'
 ```
 
 And then execute:
@@ -23,7 +23,7 @@ $ bundle
 Or install it yourself as:
 
 ```
-$ gem install fake_data
+$ gem install faker-factory
 ```
 
 ## Usage
@@ -35,11 +35,11 @@ With simple schema generates fake data. Supports structure controling like how m
 All following rows are equivalent.
 
 ```ruby
-FakeData.once("Hello, my name is %{Faker::Name.name}")
+FakerFactory.once("Hello, my name is %{Faker::Name.name}")
 => "Hello, my name is Miss Darius Stokes"
-FakeData.once("Hello, my name is %{Name.name}")
+FakerFactory.once("Hello, my name is %{Name.name}")
 => "Hello, my name is Ms. Santino Gutmann"
-FakeData.once("Hello, my name is %{name.name}")
+FakerFactory.once("Hello, my name is %{name.name}")
 => "Hello, my name is Miss Edward Kunde"
 ```
 
@@ -48,7 +48,7 @@ FakeData.once("Hello, my name is %{name.name}")
 #### Simple array with content
 
 ```ruby
-FakeData.once(
+FakerFactory.once(
   [
     "I live in %{address.city}",
     "My family came from %{address.country}"
@@ -60,7 +60,7 @@ FakeData.once(
 ### Hash
 
 ```ruby
-FakeData.once(
+FakerFactory.once(
   {
     id: "%{number.number(5)}",
     name: "%{name.name}",
@@ -78,7 +78,7 @@ FakeData.once(
 Use hash with only one special control key `"%{repeat(n)}"`
 
 ```ruby
-FakeData.once(
+FakerFactory.once(
   {"%{repeat(2)}" => "I have email %{internet.email}"}
 )
 => ["I have email eryn@bayer.name", "I have email roxane.hoppe@rosenbaum.com"]
@@ -90,7 +90,7 @@ From empty Array to Array with N items with `repeat(0..n)`
 
 ```ruby
 3.times do
-  p FakeData.once({"%{repeat(0..2)}" => "My favorite beer is: %{beer.name}"})
+  p FakerFactory.once({"%{repeat(0..2)}" => "My favorite beer is: %{beer.name}"})
 end
 
 => ["My favorite beer is Pliny The Elder", "My favorite beer is: Brooklyn Black"]
@@ -103,7 +103,7 @@ end
 For empty Array returns `nil` with `repeat(0..n, nil: true)`
 
 ```ruby
-FakeData.once({"%{repeat(0..1, nil: true)}" => "My favorite beer is: %{beer.name}"})
+FakerFactory.once({"%{repeat(0..1, nil: true)}" => "My favorite beer is: %{beer.name}"})
 => nil
 ```
 
@@ -113,7 +113,7 @@ Use hash with only one special control key `"%{maybe}"` - change is 50%. `maybe(
 
 ```ruby
 2.times do
-  FakeData.once({"%{maybe(20)}" => "I like to watch on movies with %{superhero.name}"})
+  FakerFactory.once({"%{maybe(20)}" => "I like to watch on movies with %{superhero.name}"})
 end
 => "I like to watch on movies with Giant Thanos Thirteen"
 => nil
@@ -122,7 +122,7 @@ end
 ### Complex example
 
 ```ruby
-FakeData.once(
+FakerFactory.once(
   {
     id:       "%{number.number(5)}",
     name:     "%{name.name}",
@@ -143,13 +143,13 @@ FakeData.once(
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/rake test` to run the tests, or `guard` to run . You can also run `bin/console` for an interactive prompt that will allow you to experiment. Run `bundle exec fake_data` to use the gem in this directory, ignoring other installed copies of this gem.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/rake test` to run the tests, or `guard` to run . You can also run `bin/console` for an interactive prompt that will allow you to experiment. Run `bundle exec faker-factory` to use the gem in this directory, ignoring other installed copies of this gem.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/schovi/fake_data. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/schovi/faker-factory. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 
 ## License

@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-require 'fake_data'
+require 'faker_factory'
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'minitest/reporters'

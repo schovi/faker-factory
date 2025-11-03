@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'fake_data/version'
+require 'faker_factory/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "fake_data"
-  spec.version       = FakeData::VERSION
+  spec.name          = "faker-factory"
+  spec.version       = FakerFactory::VERSION
   spec.authors       = ["David Schovanec"]
   spec.email         = ["schovanec@schovi.cz"]
 
   spec.summary       = %q{Universal random data generator}
   spec.description   = %q{Universal random data generator. Supports String, Array, Hash, repeat and conditional parts}
-  spec.homepage      = "https://github.com/schovi/fake_data"
+  spec.homepage      = "https://github.com/schovi/faker-factory"
   spec.license       = "MIT"
 
   # # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or

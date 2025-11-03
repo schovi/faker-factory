@@ -1,7 +1,7 @@
-require "fake_data/method/faker"
-require "fake_data/method/control"
+require "faker_factory/method/faker"
+require "faker_factory/method/control"
 
-module FakeData
+module FakerFactory
   class Method
     # TODO: problem with parsing "test()" => method = test; arguments = ["()"]
     METHOD_MATCHER = /((?<klass>[a-z_.:]+)\.)?(?<method>[a-z0-9_=\?]+)\s*(\((?<args1>.+)\)|(?<args2>.+))?\s*/i
@@ -121,7 +121,7 @@ module FakeData
     end
 
     def raise_custom error, reason
-      raise error, "FakeData: can't parse '#{raw}'. Reason: #{reason}."
+      raise error, "FakerFactory: can't parse '#{raw}'. Reason: #{reason}."
     end
 
     def make_call klass, method, arguments = []

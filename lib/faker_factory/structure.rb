@@ -1,4 +1,4 @@
-module FakeData
+module FakerFactory
   class Structure
     FAKER_MATCHER = /\%{(?<content>.*?)\}/
 
@@ -49,7 +49,7 @@ module FakeData
         result = ""
 
         if keys.length == 1 && match = keys.first.to_s.match(FAKER_MATCHER)
-          method = FakeData::Method::Control.new(match["content"]) do build_faker_element(element[keys.first]) end
+          method = FakerFactory::Method::Control.new(match["content"]) do build_faker_element(element[keys.first]) end
 
           result << "#{method}"
         else
