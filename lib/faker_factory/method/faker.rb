@@ -1,19 +1,20 @@
 module FakerFactory
   class Method
     class Faker < FakerFactory::Method
-      FAKER_MATCH = /Faker/i
-
       private
 
-      def raise_custom error, reason
-        raise error, "FakerFactory: can't parse '#{raw}'. Reason: #{reason}. For usage see: https://github.com/stympy/faker"
+      def raise_error(error_class, reason)
+        raise error_class, "FakerFactory: can't parse '#{@raw}'. Reason: #{reason}. See: https://github.com/faker-ruby/faker"
       end
 
-      def parse_klass klass_string
-        raise_custom NameError, "missing faker class" unless klass_string
-        klass = super(klass_string)
-        klass = "::Faker#{klass}" unless klass =~ FAKER_MATCH
-        klass
+      def normalize_class_name(klass_string)
+        raise_error(NameError, "missing faker class") unless klass_string
+
+        # If starts with ::, it's an explicit global reference - don't prepend Faker::
+        return klass_string[2..] if klass_string.start_with?("::")
+
+        class_name = super(klass_string)
+        class_name.match?(/\AFaker/i) ? class_name : "Faker::#{class_name}"
       end
     end
   end

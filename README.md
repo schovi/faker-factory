@@ -21,7 +21,7 @@ $ bundle
 ```
 
 Or install it yourself as:
-
+m
 ```
 $ gem install faker-factory
 ```
@@ -109,7 +109,7 @@ FakerFactory.once({"%{repeat(0..1, nil: true)}" => "My favorite beer is: %{beer.
 
 ### Value presence with probability
 
-Use hash with only one special control key `"%{maybe}"` - change is 50%. `maybe(20)` - chance is 20%
+Use hash with only one special control key `"%{maybe}"` - chance is 50%. `maybe(20)` - chance is 20%
 
 ```ruby
 2.times do

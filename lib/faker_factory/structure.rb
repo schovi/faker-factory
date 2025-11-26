@@ -3,132 +3,82 @@ module FakerFactory
     FAKER_MATCHER = /\%{(?<content>.*?)\}/
 
     class << self
-      # Makes lambda from object
       def object_to_lambda(object)
-        source_to_lambda(
-          object_to_source(
-            object
-          )
-        )
+        executable = build_executable(object)
+        -> { execute_node(executable) }
       end
 
-      # For debug
-      def source_to_lambda(string)
-        eval(string)
-      end
-
-      # For debug
       def object_to_source(object)
-        result = ""
-
-        result << "lambda do\n"
-        result << build_faker_element(object)
-        result << "\nend"
-
-        result
+        executable = build_executable(object)
+        "lambda do\n  #{node_to_string(executable)}\nend"
       end
 
       private
 
-      def build_faker_element(element)
+      def build_executable(element)
         case element
-        when Hash
-          build_faker_hash(element)
-        when Array
-          build_faker_array(element)
-        when String
-          build_faker_string(element)
-        else
-          element
+        when Hash then build_hash(element)
+        when Array then { type: :array, items: element.map { |e| build_executable(e) } }
+        when String then build_string(element)
+        else { type: :literal, value: element }
         end
       end
 
-      def build_faker_hash(element)
+      def build_hash(element)
         keys = element.keys
 
-        result = ""
-
-        if keys.length == 1 && match = keys.first.to_s.match(FAKER_MATCHER)
-          method = FakerFactory::Method::Control.new(match["content"]) do build_faker_element(element[keys.first]) end
-
-          result << "#{method}"
+        if keys.length == 1 && (match = keys.first.to_s.match(FAKER_MATCHER))
+          { type: :control, method: Method::Control.new(match["content"]), inner: build_executable(element[keys.first]) }
         else
-          result << "{"
-
-          result << element.map do |key, value|
-            "\"#{key.to_s}\" => #{build_faker_element(value)}"
-          end.join(",")
-
-          result << "}"
-        end
-
-        result
-      end
-
-      def build_faker_array(element)
-        result = ""
-
-        result << "["
-
-        result << element.map do |value|
-          build_faker_element(value)
-        end.join(",")
-
-        result << "]"
-
-        result
-      end
-
-      def build_faker_string(source)
-        partitions = partition_by_faker_matcher(source)
-
-        if partitions.length == 1 && faker = partitions.first[:faker]
-          return faker.to_s
-        end
-
-        result = partitions.map do |partition|
-          if faker = partition[:faker]
-            "\#\{#{faker}\}"
-          else
-            partition[:text]
-          end
-        end.join
-
-        if partitions.length == 1 && partitions[0][:faker]
-          result
-        else
-          "\"#{result}\""
+          { type: :hash, pairs: element.map { |k, v| { key: k.to_s, value: build_executable(v) } } }
         end
       end
 
-      # Split faker string into partitions
-      # input  < "some text %{number.number(10)} another %{name.name} end"
-      # output > [
-      #           { text:  "some text " },
-      #           { faker: "Faker::Number.number(10)" },
-      #           { text:  " another " },
-      #           { faker: "Faker::Name.name" },
-      #           { text:  " end" }
-      #          ]
-      def partition_by_faker_matcher string = ""
+      def build_string(source)
+        parts = partition_string(source)
+
+        return parts.first if parts.length == 1
+        { type: :interpolated, parts: parts }
+      end
+
+      def partition_string(string)
         result = []
 
-        while true
-          text, faker_placer, string = string.partition(FAKER_MATCHER)
+        loop do
+          text, placeholder, string = string.partition(FAKER_MATCHER)
+          result << { type: :literal, value: text } unless text.empty?
 
-          if text.length > 0
-            result.push({ text: text })
+          if placeholder.length > 0
+            match = placeholder.match(FAKER_MATCHER)
+            result << { type: :faker, method: Method::Faker.new(match[1]) }
           end
 
-          if faker_placer.length > 0
-            match = faker_placer.match(FAKER_MATCHER)
-            result.push({ faker: Method::Faker.new(match[1]) })
-          end
-
-          break if string.length == 0
+          break if string.empty?
         end
 
         result
+      end
+
+      def execute_node(node)
+        case node[:type]
+        when :literal then node[:value]
+        when :faker then node[:method].execute
+        when :control then node[:method].execute { execute_node(node[:inner]) }
+        when :hash then node[:pairs].each_with_object({}) { |p, h| h[p[:key]] = execute_node(p[:value]) }
+        when :array then node[:items].map { |item| execute_node(item) }
+        when :interpolated then node[:parts].map { |p| execute_node(p).to_s }.join
+        end
+      end
+
+      def node_to_string(node, indent = "")
+        case node[:type]
+        when :literal then node[:value].inspect
+        when :faker then node[:method].to_s
+        when :control then "#{node[:method]} do\n#{indent}  #{node_to_string(node[:inner], indent + "  ")}\n#{indent}end"
+        when :hash then "{\n" + node[:pairs].map { |p| "#{indent}  #{p[:key].inspect} => #{node_to_string(p[:value], indent + "  ")}" }.join(",\n") + "\n#{indent}}"
+        when :array then "[\n" + node[:items].map { |i| "#{indent}  #{node_to_string(i, indent + "  ")}" }.join(",\n") + "\n#{indent}]"
+        when :interpolated then "\"" + node[:parts].map { |p| p[:type] == :faker ? "\#{#{p[:method]}}" : p[:value] }.join + "\""
+        end
       end
     end
   end

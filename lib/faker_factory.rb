@@ -1,10 +1,12 @@
 require "faker"
 require "faker_factory/version"
+require "faker_factory/allowlist"
+require "faker_factory/safe_argument_parser"
 require "faker_factory/structure"
 require "faker_factory/method"
 require "faker/preset"
 
-# This is required. Sometimes Faker throws error on missing locale.
+# Required - sometimes Faker throws error on missing locale
 I18n.reload!
 
 module FakerFactory
@@ -13,15 +15,15 @@ module FakerFactory
       Faker::Config.locale = locale
     end
 
-    def once object
+    def once(object)
       generator(object).call
     end
 
-    def generator object
+    def generator(object)
       Structure.object_to_lambda(object)
     end
 
-    def debug object
+    def debug(object)
       Structure.object_to_source(object)
     end
   end
