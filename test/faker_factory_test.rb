@@ -38,28 +38,38 @@ describe FakerFactory do
     assert result["nested"].key?("email")
   end
 
-  it "handles maybe control" do
-    results = 20.times.map { FakerFactory.once({"%{maybe}": "value"}) }
+  it "handles maybe control with block syntax" do
+    results = 20.times.map { FakerFactory.once(FakerFactory.maybe { "value" }) }
+    assert results.include?(nil) || results.include?("value")
+  end
+
+  it "handles maybe control with argument syntax" do
+    results = 20.times.map { FakerFactory.once(FakerFactory.maybe(50, "value")) }
     assert results.include?(nil) || results.include?("value")
   end
 
   it "handles maybe with probability" do
-    results = 20.times.map { FakerFactory.once({"%{maybe(90)}": "value"}) }
+    results = 20.times.map { FakerFactory.once(FakerFactory.maybe(90) { "value" }) }
     assert results.include?("value")
   end
 
-  it "handles repeat control" do
-    result = FakerFactory.once({"%{repeat(3)}": "item"})
+  it "handles repeat control with block syntax" do
+    result = FakerFactory.once(FakerFactory.repeat(3) { "item" })
+    assert_equal ["item", "item", "item"], result
+  end
+
+  it "handles repeat control with argument syntax" do
+    result = FakerFactory.once(FakerFactory.repeat(3, "item"))
     assert_equal ["item", "item", "item"], result
   end
 
   it "handles repeat with range" do
-    result = FakerFactory.once({"%{repeat(2..5)}": "item"})
+    result = FakerFactory.once(FakerFactory.repeat(2..5) { "item" })
     assert result.length >= 2 && result.length <= 5
   end
 
   it "handles nested controls" do
-    result = FakerFactory.once({"%{maybe(99)}": {"%{repeat(2)}": "nested"}})
+    result = FakerFactory.once(FakerFactory.maybe(99) { FakerFactory.repeat(2) { "nested" } })
     assert result.nil? || result == ["nested", "nested"]
   end
 
@@ -68,6 +78,61 @@ describe FakerFactory do
     assert_equal 25, result["age"]
     assert_equal true, result["active"]
     assert_equal 3.14, result["score"]
+  end
+end
+
+describe "Fake helper" do
+  it "generates faker value with symbol API" do
+    result = FakerFactory.once(FakerFactory.fake(:name, :name))
+    assert result.is_a?(String)
+    assert result.length > 0
+  end
+
+  it "generates faker value with string API" do
+    result = FakerFactory.once(FakerFactory.fake("name.name"))
+    assert result.is_a?(String)
+    assert result.length > 0
+  end
+
+  it "generates faker value with arguments (symbol API)" do
+    result = FakerFactory.once(FakerFactory.fake(:number, :number, digits: 5))
+    assert result.is_a?(Integer)
+    assert result.to_s.length == 5
+  end
+
+  it "generates faker value with arguments (string API)" do
+    result = FakerFactory.once(FakerFactory.fake("number.number({digits: 5})"))
+    assert result.is_a?(Integer)
+    assert result.to_s.length == 5
+  end
+
+  it "works in nested structures" do
+    result = FakerFactory.once({
+      user: {
+        name: FakerFactory.fake(:name, :name),
+        email: FakerFactory.fake(:internet, :email)
+      }
+    })
+    assert result["user"]["name"].is_a?(String)
+    assert result["user"]["email"].include?("@")
+  end
+
+  it "works with repeat" do
+    result = FakerFactory.once(FakerFactory.repeat(3) { FakerFactory.fake(:name, :first_name) })
+    assert_equal 3, result.length
+    result.each { |name| assert name.is_a?(String) }
+  end
+
+  it "works with maybe" do
+    results = 20.times.map { FakerFactory.once(FakerFactory.maybe(50) { FakerFactory.fake(:name, :name) }) }
+    non_nil = results.compact
+    assert non_nil.length > 0
+    non_nil.each { |name| assert name.is_a?(String) }
+  end
+
+  it "handles underscore class names" do
+    result = FakerFactory.once(FakerFactory.fake(:ancient, :god))
+    assert result.is_a?(String)
   end
 end
 
@@ -97,7 +162,6 @@ describe "Security" do
   end
 
   it "blocks code in arguments" do
-    # This should fail because File.read is not a valid literal
     assert_raises(SecurityError) { FakerFactory.once("%{name.name(File.read('x'))}") }
   end
 
@@ -108,7 +172,6 @@ describe "Security" do
   end
 
   it "allows explicit global classes that are not blocked" do
-    # SecureRandom is not in blocked list, should work
     result = FakerFactory.once("%{::SecureRandom.uuid}")
     assert result.is_a?(String)
     assert_equal 36, result.length

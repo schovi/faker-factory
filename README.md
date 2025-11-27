@@ -21,14 +21,14 @@ $ bundle
 ```
 
 Or install it yourself as:
-m
+
 ```
 $ gem install faker-factory
 ```
 
 ## Usage
 
-With simple schema generates fake data. Supports structure controling like how many items array should have or value presence based on probability. For random data is used (Faker gem)[https://github.com/stympy/faker].
+With simple schema generates fake data. Supports structure controlling like how many items array should have or value presence based on probability. For random data is used [Faker gem](https://github.com/stympy/faker).
 
 ### String
 
@@ -62,7 +62,7 @@ FakerFactory.once(
 ```ruby
 FakerFactory.once(
   {
-    id: "%{number.number(5)}",
+    id: "%{number.number({digits: 5})}",
     name: "%{name.name}",
     email: "%{internet.email}"
   }
@@ -71,26 +71,50 @@ FakerFactory.once(
 => {"id"=>"70095", "name"=>"Mr. Alverta Gibson", "email"=>"seamus@schambergerswaniawski.name"}
 ```
 
-### Repeating
+### Faker Value Shorthand
 
-#### Generated Array with given number of items
-
-Use hash with only one special control key `"%{repeat(n)}"`
+Use `FakerFactory.fake` for direct faker values without string interpolation:
 
 ```ruby
-FakerFactory.once(
-  {"%{repeat(2)}" => "I have email %{internet.email}"}
-)
-=> ["I have email eryn@bayer.name", "I have email roxane.hoppe@rosenbaum.com"]
+# Symbol API (recommended)
+FakerFactory.once(FakerFactory.fake(:name, :name))
+=> "Prof. Clement Ferry"
+
+FakerFactory.once(FakerFactory.fake(:internet, :email))
+=> "john@example.com"
+
+# With arguments
+FakerFactory.once(FakerFactory.fake(:number, :number, digits: 5))
+=> 80159
+
+# String API (same as %{...} syntax)
+FakerFactory.once(FakerFactory.fake("name.name"))
+=> "Dr. Jane Smith"
 ```
 
-#### Generated Array with random number of items
+### Repeating
 
-From empty Array to Array with N items with `repeat(0..n)`
+Use `FakerFactory.repeat` to generate arrays with repeated content.
+
+#### Block syntax
+
+```ruby
+FakerFactory.once(FakerFactory.repeat(3) { "I have email %{internet.email}" })
+=> ["I have email eryn@bayer.name", "I have email roxane@rosenbaum.com", "I have email john@doe.test"]
+```
+
+#### Argument syntax
+
+```ruby
+FakerFactory.once(FakerFactory.repeat(2, "Hello"))
+=> ["Hello", "Hello"]
+```
+
+#### Random number of items with range
 
 ```ruby
 3.times do
-  p FakerFactory.once({"%{repeat(0..2)}" => "My favorite beer is: %{beer.name}"})
+  p FakerFactory.once(FakerFactory.repeat(0..2) { "My favorite beer is: %{beer.name}" })
 end
 
 => ["My favorite beer is Pliny The Elder", "My favorite beer is: Brooklyn Black"]
@@ -98,25 +122,29 @@ end
 => []
 ```
 
-#### Generated Array with random number of items and nothing for empty array
-
-For empty Array returns `nil` with `repeat(0..n, nil: true)`
-
-```ruby
-FakerFactory.once({"%{repeat(0..1, nil: true)}" => "My favorite beer is: %{beer.name}"})
-=> nil
-```
-
 ### Value presence with probability
 
-Use hash with only one special control key `"%{maybe}"` - chance is 50%. `maybe(20)` - chance is 20%
+Use `FakerFactory.maybe` to conditionally include values based on probability.
+
+#### Block syntax (default 50% probability)
 
 ```ruby
-2.times do
-  FakerFactory.once({"%{maybe(20)}" => "I like to watch on movies with %{superhero.name}"})
-end
-=> "I like to watch on movies with Giant Thanos Thirteen"
-=> nil
+FakerFactory.once(FakerFactory.maybe { "I like movies with %{superhero.name}" })
+=> "I like movies with Giant Thanos Thirteen"  # or nil
+```
+
+#### With custom probability
+
+```ruby
+FakerFactory.once(FakerFactory.maybe(20) { "Rare value!" })
+=> "Rare value!"  # 20% chance, otherwise nil
+```
+
+#### Argument syntax
+
+```ruby
+FakerFactory.once(FakerFactory.maybe(75, "I appear 75% of the time"))
+=> "I appear 75% of the time"  # or nil
 ```
 
 ### Complex example
@@ -124,21 +152,44 @@ end
 ```ruby
 FakerFactory.once(
   {
-    id:       "%{number.number(5)}",
-    name:     "%{name.name}",
-    age:      20,
+    id: FakerFactory.fake(:number, :number, digits: 5),
+    name: FakerFactory.fake(:name, :name),
+    age: 20,
     facebook: "%{internet.url('facebook.com/profile')}",
-    friends: {
-      "%{maybe(75)}" => {
-        "%{repeat(2..20)}" => {
-          id:       "%{number.number(5)}",
-          name:     "%{name.name}",
-          facebook: "%{internet.url('facebook.com/profile')}",
+    friends: FakerFactory.maybe(75) {
+      FakerFactory.repeat(2..20) {
+        {
+          id: FakerFactory.fake(:number, :number, digits: 5),
+          name: FakerFactory.fake(:name, :name),
+          facebook: "%{internet.url('facebook.com/profile')}"
         }
       }
     }
   }
 )
+```
+
+### Reusable Generator
+
+Create a reusable generator that produces different data on each call:
+
+```ruby
+gen = FakerFactory.generator(FakerFactory.repeat(3) { FakerFactory.fake(:name, :name) })
+gen.call  # => ["Alice Smith", "Bob Jones", "Carol White"]
+gen.call  # => ["Dave Brown", "Eve Green", "Frank Black"]
+```
+
+### Debug
+
+See the compiled lambda source code:
+
+```ruby
+FakerFactory.debug(FakerFactory.repeat(2) { FakerFactory.fake(:name, :first_name) })
+=> "lambda do
+  FakerFactory::Method::Control.repeat(2) do
+    Faker::Name.first_name
+  end
+end"
 ```
 
 ## Development
